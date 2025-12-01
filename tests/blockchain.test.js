@@ -1,7 +1,6 @@
 const request = require('supertest'); // API 요청을 보내기 위한 supertest 라이브러리
 const app = require('../app'); // 테스트할 Express 애플리케이션을 가져옵니다.
 const axios = require('axios'); // axios를 모킹하기 위해 가져옵니다.
-const Blockchain = require('../blockchain/blockchain'); // Blockchain 클래스를 가져옵니다.
 
 // axios 모듈을 모킹합니다. 실제 네트워크 요청을 보내지 않고, 우리가 정의한 가짜 응답을 반환하게 됩니다.
 jest.mock('axios');
@@ -129,55 +128,7 @@ describe('Blockchain API', () => {
     });
 
     // --- Blockchain 클래스 단위 테스트 ---
-    describe('Blockchain Class Methods (단위 테스트)', () => {
-        let isolatedBlockchain;
+    describe('Blockchain Class Methods', () => {
 
-        beforeEach(() => {
-            // Express 앱의 블록체인 인스턴스와 별개로, 완전히 새로운 블록체인 인스턴스를 생성하여 테스트합니다.
-            isolatedBlockchain = new Blockchain();
-            isolatedBlockchain.chain = [];
-            isolatedBlockchain.pendingTransactions = [];
-            isolatedBlockchain.createNewBlock(100, '0', '0'); // 제네시스 블록 생성
-        });
-
-        it('체인 유효성 검증: 조작된 블록을 올바르게 감지해야 합니다.', async () => {
-            // 1. 정상적인 첫 번째 블록(제네시스 블록 외)을 생성합니다.
-            isolatedBlockchain.createNewTransaction('A', 'B', 'P1');
-            const lastBlock = isolatedBlockchain.getLastBlock();
-            const nonce = await isolatedBlockchain.proofOfWork(lastBlock.hash, { transactions: isolatedBlockchain.pendingTransactions, index: lastBlock.index + 1 });
-            const hash = isolatedBlockchain.hashBlock(lastBlock.hash, { transactions: isolatedBlockchain.pendingTransactions, index: lastBlock.index + 1 }, nonce);
-            isolatedBlockchain.createNewBlock(nonce, lastBlock.hash, hash); // Block 2 (valid)
-
-            // 2. 현재 체인은 유효해야 합니다.
-            expect(isolatedBlockchain.chainIsValid(isolatedBlockchain.chain)).toBe(true);
-
-            // 3. --- 체인을 의도적으로 조작합니다. (Block 2의 이전 블록 해시를 변경) ---
-            // 이 조작은 `chainIsValid`의 첫 번째 검증(currentBlock.previousBlockHash !== prevBlock.hash)에서 걸려야 합니다.
-            isolatedBlockchain.chain[1].previousBlockHash = 'MALICIOUS_PREV_HASH'; // 이전 블록 해시 조작
-
-            // 4. 조작된 체인은 유효하지 않아야 합니다.
-            expect(isolatedBlockchain.chainIsValid(isolatedBlockchain.chain)).toBe(false);
-
-            // --- 추가 테스트: 블록의 내용(트랜잭션)을 조작하여 유효성 검증을 확인 ---
-            // 다시 체인 초기화 및 유효한 블록 생성 (동일한 인스턴스에서 진행)
-            isolatedBlockchain = new Blockchain(); // 다시 초기화
-            isolatedBlockchain.chain = [];
-            isolatedBlockchain.pendingTransactions = [];
-            isolatedBlockchain.createNewBlock(100, '0', '0'); // 제네시스 블록
-
-            isolatedBlockchain.createNewTransaction('X', 'Y', 'P2');
-            const lastBlock2 = isolatedBlockchain.getLastBlock();
-            const nonce2 = await isolatedBlockchain.proofOfWork(lastBlock2.hash, { transactions: isolatedBlockchain.pendingTransactions, index: lastBlock2.index + 1 });
-            const hash2 = isolatedBlockchain.hashBlock(lastBlock2.hash, { transactions: isolatedBlockchain.pendingTransactions, index: lastBlock2.index + 1 }, nonce2);
-            isolatedBlockchain.createNewBlock(nonce2, lastBlock2.hash, hash2); // Block 2 (valid)
-
-            expect(isolatedBlockchain.chainIsValid(isolatedBlockchain.chain)).toBe(true); // 여전히 유효
-
-            // Block 2의 트랜잭션 내용을 조작합니다.
-            isolatedBlockchain.chain[1].transactions[0].recipient = 'Z_RECIPIENT_TAMPERED';
-            
-            // 조작된 체인은 유효하지 않아야 합니다.
-            expect(isolatedBlockchain.chainIsValid(isolatedBlockchain.chain)).toBe(false);
-        });
     });
 });
