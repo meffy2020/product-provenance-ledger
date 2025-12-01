@@ -110,48 +110,39 @@ router.post('/pending/broadcast', async (req, res) => {
     }
 });
 
-// GET /transactions/:transactionId : 트랜잭션 ID로 특정 트랜잭션의 상세 정보를 조회합니다.
+// GET /transactions/:transactionId : 트랜잭션 ID로 특정 트랜잭션의 상세 정보를 조회합니다. (리팩토링)
 router.get('/:transactionId', (req, res) => {
     const blockchain = req.app.get('blockchain');
     const { transactionId } = req.params;
-    let foundTransaction = null;
-    let foundBlock = null;
+    const result = blockchain.getTransaction(transactionId);
 
-    blockchain.chain.forEach(block => {
-        block.transactions.forEach(transaction => {
-            if (transaction.transactionId === transactionId) {
-                foundTransaction = transaction;
-                foundBlock = block;
-            }
-        });
-    });
-
-    if (!foundTransaction) {
+    if (!result) {
         return res.status(404).json({
             result: "Fail",
             error: `트랜잭션 ID [${transactionId}]를 찾을 수 없습니다.`
         });
     }
 
+    const { transaction, block } = result;
+
     res.json({
         result: "Success",
         message: `트랜잭션 ID [${transactionId}]에 대한 정보를 찾았습니다.`,
-        transaction: foundTransaction,
+        transaction: transaction,
         block: {
-            index: foundBlock.index,
-            timestamp: foundBlock.timestamp,
-            hash: foundBlock.hash,
-            previousBlockHash: foundBlock.previousBlockHash,
-            nonce: foundBlock.nonce
+            index: block.index,
+            timestamp: block.timestamp,
+            hash: block.hash,
+            previousBlockHash: block.previousBlockHash,
+            nonce: block.nonce
         }
     });
 });
 
-// GET /transactions/block/:blockIndex : 블록 인덱스로 특정 블록에 포함된 모든 트랜잭션을 조회합니다.
+// GET /transactions/block/:blockIndex : 블록 인덱스로 특정 블록에 포함된 모든 트랜잭션을 조회합니다. (리팩토링)
 router.get('/block/:blockIndex', (req, res) => {
     const blockchain = req.app.get('blockchain');
     const blockIndex = parseInt(req.params.blockIndex);
-    let foundBlock = null;
 
     if (isNaN(blockIndex) || blockIndex <= 0) { // 블록 인덱스는 1부터 시작
         return res.status(400).json({
@@ -160,13 +151,7 @@ router.get('/block/:blockIndex', (req, res) => {
         });
     }
 
-    // 체인을 순회하여 index가 일치하는 블록을 찾습니다.
-    for (const block of blockchain.chain) {
-        if (block.index === blockIndex) {
-            foundBlock = block;
-            break;
-        }
-    }
+    const foundBlock = blockchain.getBlock(blockIndex);
 
     if (!foundBlock) {
         return res.status(404).json({

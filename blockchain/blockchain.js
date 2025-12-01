@@ -167,6 +167,79 @@ class Blockchain {
         // 모든 검증을 통과하면 true를 반환합니다.
         return true;
     }
+
+    /**
+     * 블록 해시 또는 인덱스로 블록을 조회합니다.
+     * @param {string | number} blockIdentifier - 조회할 블록의 해시 또는 인덱스
+     * @returns {object | null} 찾은 블록 객체 또는 null
+     */
+    getBlock(blockIdentifier) {
+        for (const block of this.chain) {
+            if (block.hash === blockIdentifier || block.index === blockIdentifier) {
+                return block;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 트랜잭션 ID로 트랜잭션과 해당 트랜잭션이 포함된 블록을 조회합니다.
+     * @param {string} transactionId - 조회할 트랜잭션의 ID
+     * @returns {{transaction: object, block: object} | null} 트랜잭션과 블록 정보 또는 null
+     */
+    getTransaction(transactionId) {
+        for (const block of this.chain) {
+            for (const transaction of block.transactions) {
+                if (transaction.transactionId === transactionId) {
+                    return { transaction, block };
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 특정 주소와 관련된 모든 트랜잭션을 조회합니다.
+     * @param {string} address - 조회할 지갑 주소
+     * @returns {{addressTransactions: Array<object>, addressBalance: number}} 주소 관련 트랜잭션 목록과 잔액(트랜잭션 수)
+     */
+    getAddressData(address) {
+        const addressTransactions = [];
+        this.chain.forEach(block => {
+            block.transactions.forEach(transaction => {
+                if (transaction.sender === address || transaction.recipient === address) {
+                    addressTransactions.push(transaction);
+                }
+            });
+        });
+
+        // 이 예제에서는 잔액을 단순히 관련 트랜잭션 수로 계산합니다.
+        // 실제 애플리케이션에서는 입출금을 계산해야 합니다.
+        const addressBalance = addressTransactions.length;
+
+        return { addressTransactions, addressBalance };
+    }
+
+    /**
+     * 특정 상품 ID와 관련된 모든 트랜잭션을 조회합니다.
+     * @param {string} productId - 조회할 상품의 ID
+     * @returns {Array<object>} 상품 관련 트랜잭션 목록
+     */
+    getTransactionsByProductId(productId) {
+        const transactionHistory = [];
+        this.chain.forEach(block => {
+            block.transactions.forEach(transaction => {
+                if (transaction.productId === productId) {
+                    transactionHistory.push({
+                        ...transaction,
+                        blockIndex: block.index,
+                        blockHash: block.hash
+                    });
+                }
+            });
+        });
+        return transactionHistory;
+    }
 }
 
 module.exports = Blockchain;

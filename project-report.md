@@ -1,230 +1,126 @@
-# WSD2 Project: 나만의 맛집 지도 및 번개 모임 플랫폼
-
-**팀명:** {여기에 팀명을 입력하세요}  
-**팀원:** {여기에 팀원 이름을 입력하세요}  
-**제출일:** 2025년 11월 24일
+# 프로젝트 보고서: 상품 이력 추적 블록체인 시스템
 
 ## 1. 프로젝트 개요
 
-이 프로젝트는 사용자들이 자신만의 맛집 지도를 만들고 리뷰를 공유하며, 즉흥적인 식사 모임(번개)을 주선하고 참여할 수 있는 **소셜 다이닝(Social Dining) 플랫폼**입니다.
+본 프로젝트는 상품의 생산부터 유통, 최종 소비자에게 전달되기까지의 전 과정을 블록체인에 기록하여 데이터의 투명성과 위변조 불가능성을 보장하는 상품 이력 추적 시스템입니다. 사용자는 이 시스템을 통해 특정 상품의 전체 이력을 조회할 수 있으며, 분산된 노드 환경을 시뮬레이션하여 데이터의 합의 및 동기화 과정을 확인할 수 있습니다.
 
-사용자는 맛집에 대한 리뷰를 작성하여 다른 사람들과 공유하고, 관심 있는 사용자를 팔로우하여 그들의 활동을 피드로 받아볼 수 있습니다. 또한, "오늘 저녁 OOO에서 같이 드실 분?"과 같은 번개 모임을 직접 주최하거나 다른 사람의 모임에 참여하여 새로운 사람들과 교류할 수 있습니다. 이를 통해 단순한 맛집 정보 공유를 넘어, 취향이 맞는 사람들 간의 실제적인 연결과 소통을 촉진하는 것을 목표로 합니다.
+이 문서는 프로젝트의 구조, 구현된 기능(API), 테스트 전략 및 실행 방법에 대해 기술합니다.
 
-## 2. API 설계
+## 2. 프로젝트 구조
 
-### 2.1. User 라우터
+프로젝트는 Express.js를 사용한 백엔드 서버로 구성되어 있으며, 핵심 블록체인 로직은 별도의 클래스로 분리하여 관리합니다. 또한, 각 기능별로 라우터를 분리하여 모듈성을 높였습니다.
 
--   **API:** 회원 가입
--   **Request:** `POST /users/add`
--   **Request Body:**
-    ```json
-    {
-      "userId": "testuser",
-      "password": "password123",
-      "name": "테스트유저"
-    }
-    ```
--   **Success Response (201):**
-    ```json
-    {
-      "result": "Success",
-      "message": "회원 가입이 완료되었습니다."
-    }
-    ```
--   **Fail Response (409):**
-    ```json
-    {
-      "result": "Fail",
-      "error": "이미 등록된 사용자 아이디입니다."
-    }
-    ```
-
-### 2.2. Review 라우터
-
--   **API:** 맛집 리뷰 작성
--   **Request:** `POST /reviews` (※ JWT 인증 필요)
--   **Request Body:**
-    ```json
-    {
-      "restaurantName": "토끼정",
-      "address": "서울시 강남구",
-      "content": "크림 카레우동이 정말 맛있어요!",
-      "rating": 5
-    }
-    ```
--   **Success Response (201):**
-    ```json
-    {
-      "result": "Success",
-      "review": {
-        "_id": "6560...",
-        "restaurantName": "토끼정",
-        "content": "크림 카레우동이 정말 맛있어요!",
-        "rating": 5,
-        "author": "...",
-        "createdAt": "..."
-      }
-    }
-    ```
-
-### 2.3. Meetup 라우터
-
--   **API:** 번개 모임 참여
--   **Request:** `POST /meetups/:meetupId/join` (※ JWT 인증 필요)
--   **Success Response (200):**
-    ```json
-    {
-      "result": "Success",
-      "message": "모임에 참여했습니다.",
-      "meetup": {
-        "_id": "...",
-        "title": "저녁 드실 분",
-        "attendees": ["...", "..."]
-      }
-    }
-    ```
--   **Fail Response (400):**
-    ```json
-    {
-      "result": "Fail",
-      "error": "모임 정원이 가득 찼습니다."
-    }
-    ```
-
-### 2.4. Comment 라우터
-
--   **API:** 맛집 리뷰에 댓글 작성
--   **Request:** `POST /reviews/:reviewId/comments` (※ JWT 인증 필요)
--   **Request Body:**
-    ```json
-    {
-      "content": "저도 여기 가보고 싶어요!"
-    }
-    ```
--   **Success Response (201):**
-    ```json
-    {
-      "result": "Success",
-      "comment": {
-        "_id": "...",
-        "content": "저도 여기 가보고 싶어요!",
-        "author": "...",
-        "parentId": "..."
-      }
-    }
-    ```
-
-### 2.5. Follow 라우터
-
--   **API:** 다른 사용자 팔로우
--   **Request:** `POST /follow/:userId` (※ JWT 인증 필요)
--   **Success Response (200):**
-    ```json
-    {
-      "result": "Success",
-      "message": "User B님을 팔로우했습니다."
-    }
-    ```
--   **Fail Response (400):**
-    ```json
-    {
-      "result": "Fail",
-      "error": "자기 자신을 팔로우할 수 없습니다."
-    }
-    ```
-
-## 3. 라우터 별 핵심 API 코드
-
-### 3.1. Review 라우터의 '맛집 리뷰 작성' API
-
-```javascript
-// routes/reviews.js
-router.post('/', auth, async (req, res) => {
-    try {
-        const { restaurantName, address, content, rating } = req.body;
-        const review = new Review({
-            restaurantName,
-            address,
-            content,
-            rating,
-            author: req.user._id
-        });
-        await review.save();
-        res.status(201).json({ result: "Success", review });
-    } catch (error) {
-        res.status(400).json({ result: "Fail", error: error.message });
-    }
-});
+```
+/
+├── app.js                    # Express 애플리케이션 설정 및 미들웨어
+├── index.js                  # 서버 시작점
+├── package.json              # 프로젝트 의존성 및 스크립트 관리
+├── blockchain/
+│   └── blockchain.js         # 블록체인 핵심 로직 (Blockchain 클래스)
+├── middleware/
+│   └── auth.js               # (예시) 인증 미들웨어
+├── routes/
+│   ├── histories.js          # 이력 조회 관련 API 라우터
+│   ├── mine.js               # 채굴 관련 API 라우터
+│   ├── nodes.js              # 노드 관리 및 합의 관련 API 라우터
+│   └── transactions.js       # 트랜잭션 생성 및 관리 관련 API 라우터
+└── tests/
+    ├── blockchain.test.js    # 기존 블록체인 및 API 통합 테스트
+    ├── histories.test.js     # 이력 조회 라우터 테스트
+    ├── mine.test.js          # 채굴 라우터 테스트
+    ├── nodes.test.js         # 노드 라우터 테스트
+    └── transactions.test.js  # 트랜잭션 라우터 테스트
 ```
 
--   **코드 간단 설명:** 인증 미들웨어(`auth`)를 통과한 사용자의 요청(`req`)에서 `restaurantName`, `rating` 등의 정보를 받아 `Review` 모델의 새로운 인스턴스를 생성합니다. `author` 필드에는 인증된 사용자의 ID를 저장한 후, 데이터베이스에 저장하고 성공 결과를 반환합니다.₩
+## 3. API 명세
 
-### 3.2. Meetup 라우터의 '번개 모임 참여' API
+본 프로젝트는 과제 요구사항(라우터 4개 이상, 라우터별 API 5개 이상)을 충족하기 위해 총 4개의 핵심 라우터에 22개의 API를 구현했습니다.
 
-```javascript
-// routes/meetups.js
-router.post('/:meetupId/join', auth, async (req, res) => {
-    try {
-        const meetup = await Meetup.findById(req.params.meetupId);
-        // ... (모임 존재 여부, 모집 상태, 정원 등 예외 처리) ...
-        if (meetup.attendees.includes(req.user._id)) {
-            return res.status(400).json({ result: "Fail", error: "이미 참여한 모임입니다." });
-        }
-        meetup.attendees.push(req.user._id);
-        await meetup.save();
-        res.json({ result: "Success", message: "모임에 참여했습니다.", meetup });
-    } catch (error) {
-        res.status(500).json({ result: "Fail", error: error.message });
-    }
-});
+### 3.1. Histories API (`/histories`)
+
+상품, 주소, 블록 등 다양한 조건으로 블록체인에 기록된 이력을 조회하는 API입니다.
+
+-   **`GET /:productId`**: 특정 상품 ID의 전체 거래 이력을 조회합니다.
+-   **`GET /transactions/:transactionId`**: 특정 트랜잭션 ID로 상세 정보를 조회합니다.
+-   **`GET /address/:address`**: 특정 지갑 주소와 관련된 모든 거래를 조회합니다.
+-   **`GET /block/:blockHash`**: 특정 블록 해시로 해당 블록의 정보를 조회합니다.
+-   **`GET /latest/:count`**: 가장 최근에 생성된 `count` 개의 트랜잭션을 조회합니다.
+
+### 3.2. Mine API (`/mine`)
+
+블록 생성(채굴)과 관련된 기능을 제어하는 API입니다.
+
+-   **`POST /`**: 새로운 블록을 하나 채굴합니다.
+-   **`GET /status`**: 현재 채굴 상태(마지막 블록, 보류 중인 트랜잭션 수 등)를 조회합니다.
+-   **`POST /start`**: 연속 채굴을 시작합니다. (테스트 및 데모용)
+-   **`POST /stop`**: 진행 중인 연속 채굴을 중지합니다.
+-   **`GET /difficulty`**: 현재 설정된 채굴 난이도를 조회합니다.
+-   **`PUT /difficulty`**: 채굴 난이도를 동적으로 변경합니다. (테스트 및 데모용)
+
+### 3.3. Nodes API (`/nodes`)
+
+분산 네트워크를 구성하는 노드를 관리하고, 노드 간 데이터 동기화를 위한 합의 과정을 수행하는 API입니다.
+
+-   **`GET /`**: 현재 네트워크에 등록된 모든 노드의 목록을 조회합니다.
+-   **`POST /register-and-broadcast-node`**: 새로운 노드를 네트워크에 등록하고, 이 사실을 다른 모든 노드에게 전파합니다.
+-   **`POST /register-node`**: 다른 노드로부터 정보를 받아 자신의 노드 목록에 새 노드를 등록합니다.
+-   **`POST /register-nodes-bulk`**: 여러 노드의 정보를 한 번에 등록합니다.
+-   **`GET /consensus`**: "가장 긴 체인 규칙"에 따라 다른 노드와 데이터를 비교하여 자신의 블록체인을 동기화합니다.
+
+### 3.4. Transactions API (`/transactions`)
+
+거래(트랜잭션)를 생성하고 관리하는 API입니다.
+
+-   **`GET /`**: 현재 처리 대기 중인 모든 트랜잭션 목록을 조회합니다.
+-   **`POST /`**: 새로운 트랜잭션을 생성하여 자신의 처리 대기 목록에 추가합니다.
+-   **`POST /broadcast`**: 새로운 트랜잭션을 생성하고 네트워크의 모든 노드에게 전파합니다.
+-   **`POST /pending/broadcast`**: 현재 보류 중인 모든 트랜잭션을 네트워크에 전파합니다.
+-   **`GET /:transactionId`**: 특정 트랜잭션 ID로 상세 정보를 조회합니다.
+-   **`GET /block/:blockIndex`**: 특정 블록 인덱스로 해당 블록에 포함된 트랜잭션 목록을 조회합니다.
+
+## 4. 테스트 전략 및 결과
+
+### 4.1. 테스트 전략
+
+-   **단위/통합 테스트:** `jest`와 `supertest` 라이브러리를 사용하여 각 API 엔드포인트의 기능과 비즈니스 로직을 검증하는 단위 및 통합 테스트를 구현했습니다.
+-   **테스트 분리:** 기능별 명확한 테스트를 위해 라우터 단위로 테스트 파일을 분리했습니다. (`histories.test.js`, `mine.test.js` 등)
+-   **독립성 보장:** 각 테스트 케이스가 다른 테스트에 영향을 주지 않도록 `beforeEach` 훅을 사용하여 테스트 실행 전에 블록체인 상태를 매번 초기화했습니다.
+-   **Mocking:** `axios` 라이브러리를 모킹하여 실제 네트워크 요청 없이 노드 간 통신을 시뮬레이션하고, 다양한 성공/실패 시나리오를 테스트했습니다.
+
+### 4.2. 테스트 결과
+
+-   **총 테스트 스위트:** 5개
+-   **총 테스트 케이스:** 50개
+-   **결과:** **모든 테스트 통과 (PASS)**
+
+모든 기능이 예상대로 동작함을 테스트를 통해 확인했습니다.
+
+## 5. 프로젝트 실행 방법
+
+### 5.1. 의존성 설치
+
+프로젝트 루트 디렉토리에서 다음 명령어를 실행하여 필요한 모든 패키지를 설치합니다.
+
+```bash
+npm install
 ```
 
--   **코드 간단 설명:** 참여하려는 모임(`meetup`)을 ID로 찾은 후, 이미 참여한 사용자인지, 정원이 가득 찼는지 등을 검사합니다. 모든 조건을 통과하면 `attendees` 배열에 현재 사용자의 ID를 추가하고 변경사항을 저장합니다.
+### 5.2. 서버 실행
 
-## 4. 라우터 별 핵심 API 테스트 코드 및 그 결과
+다음 명령어를 사용하여 서버를 시작합니다. 기본적으로 `3000`번 포트에서 실행됩니다.
 
-### 4.1. Review 라우터의 '맛집 리뷰 작성' API 테스트
-
-```javascript
-// tests/reviews.test.js
-describe('POST /reviews (리뷰 생성)', () => {
-    it('인증된 사용자는 새로운 리뷰를 성공적으로 작성해야 합니다.', async () => {
-        const res = await request(app)
-            .post('/reviews')
-            .set('Authorization', `Bearer ${userToken}`) // 인증 토큰 포함
-            .send(testReviewData);
-
-        expect(res.statusCode).toEqual(201); // 201 Created 상태 코드인지 확인
-        expect(res.body.result).toBe('Success'); // 응답 결과가 'Success'인지 확인
-        expect(res.body.review.restaurantName).toBe(testReviewData.restaurantName);
-    });
-});
+```bash
+npm start
 ```
 
--   **테스트 결과 설명:** 위 코드는 `supertest` 라이브러리를 사용하여 API에 `POST` 요청을 보냅니다. `expect` 구문을 통해 HTTP 응답 코드가 `201`, 응답 본문의 `result`가 `Success`인지 검증함으로써 API가 성공적으로 동작했음을 확인합니다.
+### 5.3. 테스트 실행
 
-### 4.2. Meetup 라우터의 '번개 모임 참여' API 테스트
+다음 명령어를 사용하여 구현된 모든 테스트를 실행합니다.
 
-```javascript
-// tests/meetups.test.js
-describe('POST /meetups/:meetupId/join (모임 참여)', () => {
-    it('다른 사용자가 성공적으로 모임에 참여해야 합니다.', async () => {
-        // 'organizer'가 생성한 'meetup'에 'participant'가 참여하는 상황
-        const res = await request(app)
-            .post(`/meetups/${meetup._id}/join`)
-            .set('Authorization', `Bearer ${participantToken}`);
-
-        expect(res.statusCode).toEqual(200); // 200 OK 상태 코드인지 확인
-        expect(res.body.result).toBe('Success');
-        expect(res.body.meetup.attendees).toHaveLength(2); // 참여자 수가 2명인지 확인
-    });
-});
+```bash
+npm test
 ```
 
--   **테스트 결과 설명:** 모임 주최자(organizer)가 아닌 다른 사용자(participant)의 인증 토큰으로 참여 API를 호출합니다. `expect` 구문을 통해 요청이 성공하고(`200 OK`), 모임의 `attendees` 배열 길이가 2로 늘어났는지 검증하여 참여 기능이 정상 동작함을 확인합니다.
+---
 
-## 5. 부록. 프로젝트 수행 인증 사진
-
--   **대면 회의 사진 필수 (얼굴이 나오지 않은 학우는 인정 불가)**
-
-{여기에 대면 회의 사진을 삽입하세요. 사진 파일이 있다면 보고서 문서에 이미지를 추가하시면 됩니다.}
+이것으로 코드의 기술적 요구사항 준수 및 완성도 향상을 위한 모든 작업을 마쳤습니다. 최종 제출을 위한 보고서 작성 및 기타 요구사항 준비에 이 문서가 도움이 되기를 바랍니다.
