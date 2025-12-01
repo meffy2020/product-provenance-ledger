@@ -12,6 +12,11 @@ class Blockchain {
         // 현재 노드가 알고 있는 네트워크 상의 다른 노드들의 주소 목록
         this.networkNodes = []; 
 
+        // 연속 채굴 관리
+        this.miningInterval = null;
+        // 채굴 난이도 (선행 0의 개수)
+        this.miningDifficulty = 4;
+
         // 블록체인의 첫 번째 블록인 '제네시스 블록'을 생성합니다.
         this.createNewBlock(100, '0', '0'); // nonce=100, previousBlockHash='0', hash='0'은 임의의 값입니다.
     }
@@ -100,8 +105,9 @@ class Blockchain {
     async proofOfWork(previousBlockHash, currentBlockData) {
         let nonce = 0;
         let hash = this.hashBlock(previousBlockHash, currentBlockData, nonce);
-        // 해시 값이 '0000'으로 시작하지 않으면 nonce를 1 증가시키고 해시를 다시 계산합니다.
-        while (hash.substring(0, 4) !== '0000') {
+        const targetPrefix = '0'.repeat(this.miningDifficulty); // 동적 난이도 접두사
+        // 해시 값이 targetPrefix로 시작하지 않으면 nonce를 1 증가시키고 해시를 다시 계산합니다.
+        while (hash.substring(0, this.miningDifficulty) !== targetPrefix) {
             // CPU 집약적인 루프 중간에 제어권을 이벤트 루프에 넘겨 다른 작업을 처리할 수 있게 합니다.
             await new Promise(resolve => setImmediate(resolve));
             nonce++;
@@ -117,41 +123,48 @@ class Blockchain {
      * @returns {boolean} 유효하면 true, 그렇지 않으면 false
      */
     chainIsValid(blockchain) {
-        // 1. 제네시스 블록이 올바른지 검증합니다.
+        const targetPrefix = '0'.repeat(this.miningDifficulty); // 동적 난이도 접두사
+
+        // 1. 제네시스 블록의 유효성을 검증합니다.
         const genesisBlock = blockchain[0];
-        if (
-            genesisBlock.nonce !== 100 ||
-            genesisBlock.previousBlockHash !== '0' ||
-            genesisBlock.hash !== '0' ||
-            genesisBlock.transactions.length !== 0
-        ) {
-            return false;
+        const correctNonce = genesisBlock.nonce === 100;
+        const correctPreviousBlockHash = genesisBlock.previousBlockHash === '0';
+        const correctHash = genesisBlock.hash === '0';
+        const correctTransactions = genesisBlock.transactions.length === 0;
+
+        if (!correctNonce || !correctPreviousBlockHash || !correctHash || !correctTransactions) {
+            return false; // 제네시스 블록이 유효하지 않으면 즉시 false 반환
         }
 
-        // 2. 체인의 나머지 블록들을 순회하며 검증합니다.
+        // 2. 제네시스 블록을 제외한 모든 블록을 순회하며 검증합니다.
         for (let i = 1; i < blockchain.length; i++) {
             const currentBlock = blockchain[i];
             const prevBlock = blockchain[i - 1];
+            
+            // 2-1. 현재 블록이 가리키는 '이전 블록 해시'가 실제 이전 블록의 해시와 일치하는지 확인합니다.
+            if (currentBlock.previousBlockHash !== prevBlock.hash) {
+                return false;
+            }
 
-            // 2-1. 현재 블록의 데이터를 사용하여 해시를 재계산합니다.
+            // 2-2. 현재 블록의 내용을 기반으로 해시값을 다시 계산하고, 이 해시값이 현재 블록에 저장된 해시값과 일치하는지 확인합니다.
             const recalculatedHash = this.hashBlock(
-                prevBlock.hash, // 이전 블록의 '검증된' 해시를 사용합니다.
+                currentBlock.previousBlockHash,
                 { transactions: currentBlock.transactions, index: currentBlock.index },
                 currentBlock.nonce
             );
 
-            // 2-2. 재계산된 해시가 현재 블록에 저장된 해시와 일치하는지 확인합니다.
+            // 재계산한 해시와 블록에 저장된 해시가 다르면, 블록의 내용이 위변조되었다고 판단하여 유효하지 않습니다.
             if (currentBlock.hash !== recalculatedHash) {
-                return false; // 블록 데이터가 조작되었습니다.
+                return false;
             }
 
-            // 2-3. 현재 블록의 previousBlockHash가 이전 블록의 해시와 일치하는지 확인합니다.
-            if (currentBlock.previousBlockHash !== prevBlock.hash) {
-                return false; // 체인 링크가 끊어졌습니다.
+            // 2-3. 블록의 해시가 현재 채굴 난이도 조건을 만족하는지 확인합니다.
+            if (currentBlock.hash.substring(0, this.miningDifficulty) !== targetPrefix) {
+                return false;
             }
         }
 
-        // 모든 검증을 통과하면 유효한 체인입니다.
+        // 모든 검증을 통과하면 true를 반환합니다.
         return true;
     }
 }

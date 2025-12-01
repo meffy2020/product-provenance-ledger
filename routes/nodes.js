@@ -128,5 +128,15 @@ router.get('/consensus', async (req, res) => {
     }
 });
 
+// API 5: 현재 노드가 알고 있는 모든 네트워크 노드의 목록을 반환합니다.
+router.get('/', (req, res) => {
+    const blockchain = req.app.get('blockchain');
+    res.json({
+        result: "Success",
+        message: "현재 등록된 네트워크 노드 목록입니다.",
+        networkNodes: blockchain.networkNodes
+    });
+});
+
 
 module.exports = router; // 라우터를 모듈로 내보냅니다.

@@ -53,7 +53,7 @@ describe('Blockchain API', () => {
                 .expect(200);
             
             expect(blockchain.chain).toHaveLength(2);
-            expect(blockchain.pendingTransactions).toHaveLength(0);
+            expect(blockchain.pendingTransactions).toHaveLength(1); // 채굴 보상 트랜잭션이 추가되므로 1
     
             // 3단계: 채굴된 거래의 상품 이력을 조회합니다.
             const historyRes = await request(app).get(`/histories/${productId}`).expect(200);
