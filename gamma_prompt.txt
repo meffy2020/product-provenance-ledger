@@ -1,55 +1,200 @@
-Create a professional presentation for a university software engineering project titled "Product Provenance Tracking Blockchain System" (Team: CocoSG).
+Create a comprehensive and technical presentation for a software engineering project titled "Product Provenance Tracking Blockchain System" (Team: CocoSG).
 
-**Tone:** Professional, Technical, Persuasive
-**Language:** Korean (한국어)
-**Slide Count:** 8-10 slides
+**Instructions:**
+- Use a clean, developer-focused theme (e.g., Dark mode, monospaced fonts for code).
+- **Include ALL details provided below.** Do not summarize too much; keep the technical depth.
+- Create roughly 12-15 slides to cover the detailed API specs and code.
 
-**Content Outline:**
+---
 
-1.  **Title Slide**
-    *   Title: 상품 이력 추적 블록체인 시스템
-    *   Subtitle: 투명하고 신뢰할 수 있는 유통 관리를 위한 블록체인 솔루션
-    *   Team Name: 코코스지 (CocoSG)
+**[Slide 1: Title]**
+- **Headline:** 상품 이력 추적 블록체인 시스템
+- **Sub-headline:** 투명하고 신뢰할 수 있는 유통 관리를 위한 블록체인 솔루션
+- **Team:** 코코스지 (CocoSG)
+- **Members:** 홍길동 (200503001), 임꺽정 (200503002)
 
-2.  **Problem Statement (문제 정의)**
-    *   Current Supply Chain Issues: Lack of transparency, difficulty in tracking product history, risk of data forgery.
-    *   "기존 유통 시스템의 불투명성과 데이터 위변조 위험성"
+**[Slide 2: Project Overview]**
+- **Content:**
+    - 본 프로젝트는 상품의 생산부터 유통, 최종 소비자에게 전달되기까지의 전 과정을 블록체인에 기록합니다.
+    - 데이터의 투명성과 위변조 불가능성을 보장합니다.
+    - Express.js 기반의 4개 핵심 라우터(Histories, Mine, Nodes, Transactions) 구현.
+    - 핵심 기술: 작업 증명(PoW), 합의 알고리즘(Longest Chain Rule), P2P 데이터 동기화.
 
-3.  **Solution (해결 방안)**
-    *   Blockchain Technology: Immutable ledger, decentralized network.
-    *   Core Value: Trust, Transparency, Traceability.
-    *   "블록체인의 불변성과 투명성을 활용한 신뢰할 수 있는 이력 추적"
+**[Slide 3: API Design - Histories Router]**
+- **Topic:** 상품 이력 조회 API
+- **Request:** `GET, /histories/:productId`
+- **Parameters:** `productId` (String, Essential) - ID of the product to track.
+- **Response JSON:**
+```json
+{
+  "result": "Success",
+  "message": "Found 3 transactions for product ID [sneakers-123].",
+  "history": [
+    {
+      "sender": "Manufacturer",
+      "recipient": "Distributor",
+      "productId": "sneakers-123",
+      "transactionId": "b3c9...",
+      "timestamp": 1700000000000,
+      "blockIndex": 2,
+      "blockHash": "0000a1b2..."
+    }
+  ]
+}
+```
 
-4.  **System Architecture (시스템 구조)**
-    *   Backend: Node.js, Express.js
-    *   Core Logic: Custom Blockchain Class (JavaScript)
-    *   Testing: Jest (TDD approach)
-    *   Structure: 4 Core Routers (Histories, Mine, Nodes, Transactions)
+**[Slide 4: Core Code - Histories Router]**
+- **Topic:** Implementation of History Lookup
+- **Code Snippet:**
+```javascript
+router.get('/:productId', (req, res) => {
+    const blockchain = req.app.get('blockchain');
+    const { productId } = req.params;
+    
+    // Encapsulate business logic using helper methods
+    const transactionHistory = blockchain.getTransactionsByProductId(productId);
 
-5.  **Key Feature 1: Immutable Product History (상품 이력 관리)**
-    *   Router: `/histories`
-    *   Function: Tracking product lifecycle from production to delivery.
-    *   "상품 ID 하나로 전체 유통 과정을 투명하게 조회"
+    if (transactionHistory.length === 0) {
+        return res.status(404).json({ error: `History not found for product ID [${productId}].` });
+    }
 
-6.  **Key Feature 2: Proof of Work & Consensus (작업 증명 및 합의)**
-    *   Router: `/mine`, `/nodes`
-    *   Mechanism: Proof of Work (PoW) for block creation.
-    *   Consensus: Longest Chain Rule for data synchronization across nodes.
-    *   "작업 증명과 합의 알고리즘을 통한 데이터 무결성 보장"
+    res.json({
+        result: "Success",
+        history: transactionHistory
+    });
+});
+```
+- **Key Logic:** Uses `getTransactionsByProductId` helper to traverse the chain and extract relevant transactions.
 
-7.  **Key Feature 3: P2P Network & Transactions (P2P 네트워크 및 거래)**
-    *   Router: `/nodes`, `/transactions`
-    *   Function: Decentralized node registration and broadcasting.
-    *   "중앙 서버 없는 P2P 노드 간의 실시간 데이터 전파 및 동기화"
+**[Slide 5: API Design - Mine Router]**
+- **Topic:** Block Mining API
+- **Request:** `POST, /mine`
+- **Parameters:** `minerAddress` (String, Essential) - Address to receive mining rewards.
+- **Response JSON:**
+```json
+{
+  "result": "Success",
+  "message": "New block mined successfully!",
+  "block": {
+    "index": 5,
+    "timestamp": 1700000500000,
+    "transactions": [],
+    "nonce": 28391,
+    "hash": "0000c3d4...",
+    "previousBlockHash": "0000b2c3..."
+  }
+}
+```
 
-8.  **Development Process & Quality Assurance (개발 및 품질 보증)**
-    *   Test Driven Development (TDD): Used `supertest` and `jest`.
-    *   Reliability: Verified with 50+ test cases covering all API endpoints.
-    *   "철저한 테스트 코드 작성을 통한 시스템 안정성 확보 (50개 이상의 테스트 케이스 통과)"
+**[Slide 6: Core Code - Mine Router]**
+- **Topic:** Proof of Work & Block Creation
+- **Code Snippet:**
+```javascript
+router.post('/', async (req, res) => {
+    const { minerAddress } = req.body;
+    // ... validation ...
+    
+    // Perform Proof of Work (PoW)
+    const nonce = await blockchain.proofOfWork(previousBlockHash, currentBlockData);
+    const blockHash = blockchain.hashBlock(previousBlockHash, currentBlockData, nonce);
 
-9.  **Conclusion & Expected Impact (결론 및 기대 효과)**
-    *   Enhanced Trust: Consumers can trust product origins.
-    *   Efficiency: Automated tracking reduces manual errors.
-    *   "소비자 신뢰도 향상 및 유통 관리의 효율성 극대화"
+    // Create new block
+    const newBlock = blockchain.createNewBlock(nonce, previousBlockHash, blockHash);
 
-10. **Q&A**
+    // Reward transaction is added to the NEXT block
+    blockchain.createNewTransaction('00-REWARD-SYSTEM', minerAddress, 'MINING-REWARD');
+
+    res.json({ result: "Success", block: newBlock });
+});
+```
+- **Key Logic:** Calculates valid `nonce` and `hash` (PoW), adds block to chain, and queues a reward transaction for the next block.
+
+**[Slide 7: API Design - Nodes Router]**
+- **Topic:** Node Registration & Broadcast
+- **Request:** `POST, /nodes/register-and-broadcast-node`
+- **Parameters:** `newNodeUrl` (String, Essential) - URL of the new node.
+- **Response JSON:**
+```json
+{
+  "result": "Success",
+  "message": "New node registered and broadcasted successfully."
+}
+```
+
+**[Slide 8: Core Code - Consensus Algorithm]**
+- **Topic:** Consensus (Longest Chain Rule) Implementation
+- **Code Snippet:**
+```javascript
+router.get('/consensus', async (req, res) => {
+    // ... request blockchain data from all nodes ...
+    const blockchains = await Promise.all(requestPromises);
+    
+    // Find the longest valid chain
+    for (const response of blockchains) {
+        const remoteChain = response.data.chain;
+        if (remoteChain.length > maxChainLength && blockchain.chainIsValid(remoteChain)) {
+            maxChainLength = remoteChain.length;
+            newLongestChain = remoteChain;
+        }
+    }
+
+    // Replace chain if a longer valid one exists
+    if (newLongestChain) {
+        blockchain.chain = newLongestChain;
+        res.json({ message: 'Chain replaced with the longest valid chain.' });
+    }
+});
+```
+- **Key Logic:** Synchronizes data by adopting the longest valid chain from the network.
+
+**[Slide 9: API Design - Transactions Router]**
+- **Topic:** Transaction Creation API
+- **Request:** `POST, /transactions`
+- **Parameters:** `sender`, `recipient`, `productId` (All String, Essential).
+- **Response JSON:**
+```json
+{
+  "result": "Success",
+  "message": "Transaction created and added to pending list.",
+  "transaction": {
+    "sender": "Alice",
+    "recipient": "Bob",
+    "productId": "Phone-001",
+    "transactionId": "f1e2..."
+  }
+}
+```
+
+**[Slide 10: Core Code - Transaction Creation]**
+- **Topic:** Creating Pending Transactions
+- **Code Snippet:**
+```javascript
+router.post('/', (req, res) => {
+    const { sender, recipient, productId } = req.body;
+    // ... validation ...
+
+    const newTransaction = blockchain.createNewTransaction(sender, recipient, productId);
+
+    res.status(201).json({
+        result: "Success",
+        transaction: newTransaction
+    });
+});
+```
+
+**[Slide 11: Test Strategy & Results]**
+- **Strategy:** Test Driven Development (TDD) using `jest` and `supertest`.
+- **Coverage:** Unit tests for Blockchain class, Integration tests for all 4 routers.
+- **Isolation:** `beforeEach` hook used to reset blockchain state for every test case.
+- **Mocking:** `axios` mocked to simulate P2P network interactions.
+- **Result:**
+    - Total Test Suites: 5
+    - Total Test Cases: 50
+    - **Result: ALL PASS**
+
+**[Slide 12: Project Conclusion]**
+- **Summary:** Successfully built a decentralized product provenance system.
+- **Impact:**
+    - Consumers: Verifiable product history.
+    - Business: Transparent supply chain management.
+- **Technical Achievement:** Implemented core blockchain features (PoW, Consensus, P2P) from scratch without external blockchain libraries.
