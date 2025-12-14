@@ -14,20 +14,30 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 
 ## 2. API 설계
 
-### 2.1. Histories 라우터
+### 1. Histories 라우터
 
-**1) 상품 이력 조회 API**
+- **상품 이력 조회 API**
 
-*   **Request:** `GET, /histories/:productId`
-*   **Description:** 특정 상품 ID(`productId`)와 관련된 모든 트랜잭션 이력을 블록체인에서 찾아 반환합니다.
-
-**Parameters**
+**Request: GET, /histories/:productId**
 
 | Parameter | 타입   | 필수여부 | 설명             |
 | :-------- | :----- | :------- | :--------------- |
 | productId | String | 필수     | 조회할 상품의 ID |
 
 **Response**
+
+| Element | Depth | 값 구분        | 설명                                  |
+| :------ | :---- | :------------- | :------------------------------------ |
+| result  | 1     | Success / Fail | 요청 처리 성공 여부                   |
+| message | 1     | 문자열         | 결과 메시지                           |
+| history | 1     | Array          | 거래 이력 목록                        |
+| sender  | 2     | String         | (history 배열 내) 발신자 주소         |
+| recipient | 2   | String         | (history 배열 내) 수신자 주소         |
+| productId | 2   | String         | (history 배열 내) 상품 ID             |
+| transactionId | 2 | String       | (history 배열 내) 트랜잭션 ID         |
+| timestamp | 2   | Number         | (history 배열 내) 거래 생성 시간      |
+| blockIndex | 2  | Number         | (history 배열 내) 포함된 블록 인덱스  |
+| blockHash | 2   | String         | (history 배열 내) 포함된 블록 해시    |
 
 ```json
 {
@@ -47,20 +57,29 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 }
 ```
 
-### 2.2. Mine 라우터
+### 2. Mine 라우터
 
-**1) 블록 채굴 API**
+- **블록 채굴 API**
 
-*   **Request:** `POST, /mine`
-*   **Description:** 현재 보류 중인 트랜잭션들을 모아 작업 증명(PoW) 과정을 거쳐 새로운 블록을 생성(채굴)합니다.
+**Request: POST, /mine**
 
-**Parameters**
-
-| Parameter     | 타입   | 필수여부 | 설명                 |
-| :------------ | :----- | :------- | :------------------- |
+| Parameter    | 타입   | 필수여부 | 설명                  |
+| :----------- | :----- | :------- | :-------------------- |
 | minerAddress | String | 필수     | 채굴 보상을 받을 주소 |
 
 **Response**
+
+| Element | Depth | 값 구분        | 설명                                   |
+| :------ | :---- | :------------- | :------------------------------------- |
+| result  | 1     | Success / Fail | 채굴 성공 여부                         |
+| message | 1     | 문자열         | 결과 메시지                            |
+| block   | 1     | Object         | 새로 생성된 블록 정보                  |
+| index   | 2     | Number         | (block 객체 내) 블록 인덱스            |
+| timestamp | 2   | Number         | (block 객체 내) 블록 생성 시간         |
+| transactions | 2 | Array         | (block 객체 내) 포함된 트랜잭션 목록   |
+| nonce   | 2     | Number         | (block 객체 내) 작업 증명 결과(Nonce)  |
+| hash    | 2     | String         | (block 객체 내) 현재 블록 해시         |
+| previousBlockHash | 2 | String     | (block 객체 내) 이전 블록 해시         |
 
 ```json
 {
@@ -77,20 +96,22 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 }
 ```
 
-### 2.3. Nodes 라우터
+### 3. Nodes 라우터
 
-**1) 노드 등록 및 브로드캐스트 API**
+- **노드 등록 및 브로드캐스트 API**
 
-*   **Request:** `POST, /nodes/register-and-broadcast-node`
-*   **Description:** 새로운 노드를 현재 노드에 등록하고, 네트워크상의 모든 다른 노드에게도 해당 노드를 등록하도록 요청합니다.
+**Request: POST, /nodes/register-and-broadcast-node**
 
-**Parameters**
-
-| Parameter  | 타입   | 필수여부 | 설명             |
-| :--------- | :----- | :------- | :--------------- |
-| newNodeUrl | String | 필수     | 새 노드의 URL 주소 |
+| Parameter  | 타입   | 필수여부 | 설명               |
+| :--------- | :----- | :------- | :----------------- |
+| newNodeUrl | String | 필수     | 등록할 새 노드 URL |
 
 **Response**
+
+| Element | Depth | 값 구분        | 설명                  |
+| :------ | :---- | :------------- | :-------------------- |
+| result  | 1     | Success / Fail | 노드 등록 성공 여부   |
+| message | 1     | 문자열         | 결과 메시지           |
 
 ```json
 {
@@ -99,22 +120,30 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 }
 ```
 
-### 2.4. Transactions 라우터
+### 4. Transactions 라우터
 
-**1) 트랜잭션 생성 API**
+- **트랜잭션 생성 API**
 
-*   **Request:** `POST, /transactions`
-*   **Description:** 새로운 트랜잭션을 생성하여 현재 노드의 처리 대기 목록(Pending Transactions)에 추가합니다.
+**Request: POST, /transactions**
 
-**Parameters**
-
-| Parameter | 타입   | 필수여부 | 설명          |
-| :-------- | :----- | :------- | :------------ |
-| sender    | String | 필수     | 발신자 주소   |
-| recipient | String | 필수     | 수신자 주소   |
+| Parameter | 타입   | 필수여부 | 설명         |
+| :-------- | :----- | :------- | :----------- |
+| sender    | String | 필수     | 발신자 주소  |
+| recipient | String | 필수     | 수신자 주소  |
 | productId | String | 필수     | 거래 상품 ID |
 
 **Response**
+
+| Element | Depth | 값 구분        | 설명                                      |
+| :------ | :---- | :------------- | :---------------------------------------- |
+| result  | 1     | Success / Fail | 트랜잭션 생성 성공 여부                   |
+| message | 1     | 문자열         | 결과 메시지                               |
+| transaction | 1 | Object         | 생성된 트랜잭션 정보                      |
+| sender  | 2     | String         | (transaction 객체 내) 발신자 주소         |
+| recipient | 2   | String         | (transaction 객체 내) 수신자 주소         |
+| productId | 2   | String         | (transaction 객체 내) 상품 ID             |
+| transactionId | 2 | String       | (transaction 객체 내) 트랜잭션 고유 ID    |
+| timestamp | 2   | Number         | (transaction 객체 내) 생성 시간           |
 
 ```json
 {
@@ -207,47 +236,27 @@ router.post('/', async (req, res) => {
 
 router.get('/consensus', async (req, res) => {
     const blockchain = req.app.get('blockchain');
-    const requestPromises = [];
+    // ... (모든 노드에 블록체인 데이터 요청 로직 생략) ...
 
-    // 1. 네트워크의 모든 다른 노드에게 그들의 블록체인 정보를 요청합니다.
-    blockchain.networkNodes.forEach(networkNodeUrl => {
-        requestPromises.push(axios.get(`${networkNodeUrl}/blockchain`));
-    });
-
-    try {
-        const blockchains = await Promise.all(requestPromises);
-        let maxChainLength = blockchain.chain.length;
-        let newLongestChain = null;
-        let newPendingTransactions = null;
-
-        // 가장 긴 유효한 체인 탐색
-        for (const response of blockchains) {
-            const remoteChain = response.data.chain;
-            if (remoteChain.length > maxChainLength && blockchain.chainIsValid(remoteChain)) {
-                maxChainLength = remoteChain.length;
-                newLongestChain = remoteChain;
-                newPendingTransactions = response.data.pendingTransactions;
-            }
+    const blockchains = await Promise.all(requestPromises);
+    
+    // 가장 긴 유효한 체인 탐색
+    for (const response of blockchains) {
+        const remoteChain = response.data.chain;
+        if (remoteChain.length > maxChainLength && blockchain.chainIsValid(remoteChain)) {
+            maxChainLength = remoteChain.length;
+            newLongestChain = remoteChain;
+            // ...
         }
+    }
 
-        // 내 체인을 더 긴 체인으로 교체
-        if (!newLongestChain || (newLongestChain && !blockchain.chainIsValid(newLongestChain))) {
-            res.json({
-                result: "Success",
-                message: '현재 체인이 가장 최신 버전이므로 교체되지 않았습니다.',
-                chain: blockchain.chain
-            });
-        } else {
-            blockchain.chain = newLongestChain;
-            blockchain.pendingTransactions = newPendingTransactions;
-            res.json({
-                result: "Success",
-                message: '더 긴 유효 체인을 발견하여 현재 체인을 교체했습니다.',
-                chain: blockchain.chain
-            });
-        }
-    } catch (error) {
-        res.status(500).json({ result: "Fail", error: '합의 과정에 실패했습니다.' });
+    // 내 체인을 더 긴 체인으로 교체
+    if (newLongestChain) {
+        blockchain.chain = newLongestChain;
+        // ...
+        res.json({ result: "Success", message: '더 긴 유효 체인을 발견하여 현재 체인을 교체했습니다.' });
+    } else {
+        res.json({ result: "Success", message: '현재 체인이 가장 최신 버전이므로 교체되지 않았습니다.' });
     }
 });
 ```
@@ -284,7 +293,7 @@ router.post('/', (req, res) => {
 
 ## 4. 라우터 별 핵심 API 테스트 코드 및 그 결과
 
-### 4.1. Histories 라우터의 상품 이력 조회 API 테스트
+### 4.1. Histories 라우터 테스트
 
 ```javascript
 // tests/histories.test.js
@@ -299,52 +308,31 @@ it('GET /histories/:productId: 특정 상품의 모든 거래 이력을 반환�
 ```
 **결과:** `PASS tests/histories.test.js`
 
-### 4.2. Mine 라우터의 블록 채굴 API 테스트
+### 4.2. Mine 라우터 테스트
 
 ```javascript
 // tests/mine.test.js
 
 it('POST /mine: 새로운 블록을 성공적으로 채굴하고 보상 트랜잭션을 생성해야 합니다.', async () => {
-    blockchain.createNewTransaction('sender1', 'recipient1', 'product1');
-    const initialChainLength = blockchain.chain.length;
-
-    const res = await request(app)
-        .post('/mine')
-        .send({ minerAddress: minerAddress });
+    // ... (트랜잭션 생성) ...
+    const res = await request(app).post('/mine').send({ minerAddress: minerAddress });
 
     expect(res.statusCode).toEqual(200);
     expect(res.body.result).toBe('Success');
     expect(blockchain.chain.length).toBe(initialChainLength + 1);
-    // 보상 트랜잭션이 다음 블록 대기열에 추가되므로 1개
+    // 보상 트랜잭션 확인
     expect(blockchain.pendingTransactions).toHaveLength(1); 
 });
 ```
 **결과:** `PASS tests/mine.test.js`
 
-### 4.3. Nodes 라우터의 합의(Consensus) 알고리즘 API 테스트
+### 4.3. Nodes 라우터 테스트
 
 ```javascript
 // tests/nodes.test.js
 
 it('GET /nodes/consensus: 더 긴 유효 체인이 있으면 자신의 체인을 교체해야 합니다.', async () => {
-    // 현재 노드에 2개의 블록 추가
-    blockchain.createNewTransaction('a', 'b', 'c');
-    await request(app).post('/mine').send({ minerAddress: 'miner' });
-
-    // 다른 노드가 더 긴 체인을 가지고 있다고 모킹 (3개 블록)
-    const longerChain = JSON.parse(JSON.stringify(blockchain.chain));
-    longerChain.push(blockchain.createNewBlock(123, longerChain[longerChain.length-1].hash, 'new_hash_3'));
-    blockchain.chain.pop(); // createNewBlock으로 추가된 블록 제거
-
-    axios.get.mockResolvedValueOnce({ // testNodeUrl1의 /blockchain 응답 모킹
-        data: {
-            chain: longerChain,
-            pendingTransactions: []
-        }
-    });
-    // chainIsValid가 제대로 동작한다고 가정하고 모킹 (컨센서스 로직 테스트 위함)
-    jest.spyOn(blockchain, 'chainIsValid').mockReturnValue(true);
-
+    // ... (더 긴 체인을 가진 노드 Mocking) ...
     const res = await request(app).get('/nodes/consensus');
     
     expect(res.statusCode).toEqual(200);
@@ -354,20 +342,18 @@ it('GET /nodes/consensus: 더 긴 유효 체인이 있으면 자신의 체인을
 ```
 **결과:** `PASS tests/nodes.test.js`
 
-### 4.4. Transactions 라우터의 트랜잭션 생성 API 테스트
+### 4.4. Transactions 라우터 테스트
 
 ```javascript
 // tests/transactions.test.js
 
 it('POST /transactions: 새로운 트랜잭션을 생성하여 처리 대기 목록에 추가해야 합니다.', async () => {
-    const initialPendingTxCount = blockchain.pendingTransactions.length;
     const res = await request(app)
         .post('/transactions')
         .send({ sender: 'newSender', recipient: 'newRecipient', productId: 'newProduct' });
 
     expect(res.statusCode).toEqual(201);
     expect(res.body.result).toBe('Success');
-    expect(res.body.transaction).toBeDefined();
     expect(blockchain.pendingTransactions).toHaveLength(initialPendingTxCount + 1);
 });
 ```
