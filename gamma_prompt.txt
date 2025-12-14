@@ -1,0 +1,55 @@
+Create a professional presentation for a university software engineering project titled "Product Provenance Tracking Blockchain System" (Team: CocoSG).
+
+**Tone:** Professional, Technical, Persuasive
+**Language:** Korean (한국어)
+**Slide Count:** 8-10 slides
+
+**Content Outline:**
+
+1.  **Title Slide**
+    *   Title: 상품 이력 추적 블록체인 시스템
+    *   Subtitle: 투명하고 신뢰할 수 있는 유통 관리를 위한 블록체인 솔루션
+    *   Team Name: 코코스지 (CocoSG)
+
+2.  **Problem Statement (문제 정의)**
+    *   Current Supply Chain Issues: Lack of transparency, difficulty in tracking product history, risk of data forgery.
+    *   "기존 유통 시스템의 불투명성과 데이터 위변조 위험성"
+
+3.  **Solution (해결 방안)**
+    *   Blockchain Technology: Immutable ledger, decentralized network.
+    *   Core Value: Trust, Transparency, Traceability.
+    *   "블록체인의 불변성과 투명성을 활용한 신뢰할 수 있는 이력 추적"
+
+4.  **System Architecture (시스템 구조)**
+    *   Backend: Node.js, Express.js
+    *   Core Logic: Custom Blockchain Class (JavaScript)
+    *   Testing: Jest (TDD approach)
+    *   Structure: 4 Core Routers (Histories, Mine, Nodes, Transactions)
+
+5.  **Key Feature 1: Immutable Product History (상품 이력 관리)**
+    *   Router: `/histories`
+    *   Function: Tracking product lifecycle from production to delivery.
+    *   "상품 ID 하나로 전체 유통 과정을 투명하게 조회"
+
+6.  **Key Feature 2: Proof of Work & Consensus (작업 증명 및 합의)**
+    *   Router: `/mine`, `/nodes`
+    *   Mechanism: Proof of Work (PoW) for block creation.
+    *   Consensus: Longest Chain Rule for data synchronization across nodes.
+    *   "작업 증명과 합의 알고리즘을 통한 데이터 무결성 보장"
+
+7.  **Key Feature 3: P2P Network & Transactions (P2P 네트워크 및 거래)**
+    *   Router: `/nodes`, `/transactions`
+    *   Function: Decentralized node registration and broadcasting.
+    *   "중앙 서버 없는 P2P 노드 간의 실시간 데이터 전파 및 동기화"
+
+8.  **Development Process & Quality Assurance (개발 및 품질 보증)**
+    *   Test Driven Development (TDD): Used `supertest` and `jest`.
+    *   Reliability: Verified with 50+ test cases covering all API endpoints.
+    *   "철저한 테스트 코드 작성을 통한 시스템 안정성 확보 (50개 이상의 테스트 케이스 통과)"
+
+9.  **Conclusion & Expected Impact (결론 및 기대 효과)**
+    *   Enhanced Trust: Consumers can trust product origins.
+    *   Efficiency: Automated tracking reduces manual errors.
+    *   "소비자 신뢰도 향상 및 유통 관리의 효율성 극대화"
+
+10. **Q&A**

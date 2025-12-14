@@ -1,7 +1,7 @@
 # 프로젝트 보고서
 
-**팀명:** [여기에 팀명을 입력하세요]
-**팀원:** [이름] ([학번]), [이름] ([학번])
+**팀명:** 코코스지
+**팀원:** 홍길동 (200503001), 임꺽정 (200503002)
 
 ---
 
@@ -39,6 +39,7 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 | blockIndex | 2  | Number         | (history 배열 내) 포함된 블록 인덱스  |
 | blockHash | 2   | String         | (history 배열 내) 포함된 블록 해시    |
 
+**Response JSON 예시**
 ```json
 {
   "result": "Success",
@@ -81,6 +82,7 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 | hash    | 2     | String         | (block 객체 내) 현재 블록 해시         |
 | previousBlockHash | 2 | String     | (block 객체 내) 이전 블록 해시         |
 
+**Response JSON 예시**
 ```json
 {
   "result": "Success",
@@ -113,6 +115,7 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 | result  | 1     | Success / Fail | 노드 등록 성공 여부   |
 | message | 1     | 문자열         | 결과 메시지           |
 
+**Response JSON 예시**
 ```json
 {
   "result": "Success",
@@ -145,6 +148,7 @@ Express.js를 기반으로 4개의 핵심 라우터(Histories, Mine, Nodes, Tran
 | transactionId | 2 | String       | (transaction 객체 내) 트랜잭션 고유 ID    |
 | timestamp | 2   | Number         | (transaction 객체 내) 생성 시간           |
 
+**Response JSON 예시**
 ```json
 {
   "result": "Success",
@@ -363,7 +367,6 @@ it('POST /transactions: 새로운 트랜잭션을 생성하여 처리 대기 목
 
 ## 부록. 프로젝트 수행 인증 사진
 
-**[이곳에 대면 회의 사진을 첨부해주세요]**
-*(얼굴이 나오지 않은 학우는 인정 불가하므로 주의해주세요)*
+![대면 회의 사진](/Users/ksj/Downloads/IMG_5021.HEIC)
 
 ---
